@@ -31,6 +31,7 @@ import tensorflow as tf
 import keras.backend as K
 
 import pandas as pd
+from ggplot import *
 
 
 class ResNet():
@@ -42,8 +43,8 @@ class ResNet():
         self.source_df = pd.read_csv(source_path, sep=',', header=0, index_col=0)
         self.target_df = pd.read_csv(target_path, sep=',', header=0, index_col=0)
         
-        self.source = self.source_df.values
-        self.target = self.target_df.values
+        self.source = self.source_df.loc[:, "PC1":"PC20"].values
+        self.target = self.target_df.loc[:, "PC1":"PC20"].values
         
         self.inputDim = self.target.shape[1]
         
@@ -118,23 +119,59 @@ class ResNet():
         
         self.calibrated_source = self.calibMMDNet.predict(self.source)
         self.calibrated_source_df = pd.DataFrame(self.calibrated_source, 
-                                                 index=self.source_df.index, columns=self.source_df.columns)
+                                                 index=self.source_df.index, columns=self.source_df.columns[2:])
+        self.calibrated_source_df.reindex(columns=self.source_df.columns)
+        self.calibrated_source_df['study'] = self.source_df['study']
+        self.calibrated_source_df['tissue'] = self.source_df['tissue']
         
     def pca(self):
         pca = decomposition.PCA()
+        
+        # data = np.append(self.target, self.source, axis=0)
+        
         pca.fit(self.target)
+        #pca.fit(data)
         
         self.target_sample_pca = pca.transform(self.target)
         self.projection_before = pca.transform(self.source)
         self.projection_after = pca.transform(self.calibrated_source)
         
+        self.target_pca_df = pd.DataFrame(self.target_sample_pca,
+                                          index=self.target_df.index, columns=self.target_df.columns[2:])
+        self.target_pca_df.reindex(columns=self.target_df.columns)
+        self.target_pca_df['study'] = self.target_df['study']
+        self.target_pca_df['tissue'] = self.target_df['tissue']
+        
+        self.source_pca_df = pd.DataFrame(self.projection_before,
+                                          index=self.source_df.index, columns=self.source_df.columns[2:])
+        self.source_pca_df.reindex(columns=self.source_df.columns)
+        self.source_pca_df['study'] = self.source_df['study']
+        self.source_pca_df['tissue'] = self.source_df['tissue']
+        
+        self.calibrated_source_pca_df = pd.DataFrame(self.projection_after,
+                                          index=self.source_df.index, columns=self.source_df.columns[2:])
+        self.calibrated_source_pca_df.reindex(columns=self.source_df.columns)
+        self.calibrated_source_pca_df['study'] = self.source_df['study']
+        self.calibrated_source_pca_df['tissue'] = self.source_df['tissue']
+        
+        
     def scatter_hist(self, pc1=0, pc2=1):
         axis1 = 'PC' + str(pc1)
         axis2 = 'PC' + str(pc2)
-        sh.scatterHist(self.target_sample_pca[:,pc1], self.target_sample_pca[:,pc2], self.projection_before[:,pc1], 
-                       self.projection_before[:,pc2], axis1, axis2)
-        sh.scatterHist(self.target_sample_pca[:,pc1], self.target_sample_pca[:,pc2], self.projection_after[:,pc1], 
-                       self.projection_after[:,pc2], axis1, axis2)
+        sh.scatterHist(self.target_sample_pca[:, pc1], self.target_sample_pca[:, pc2], self.projection_before[:, pc1], 
+                       self.projection_before[:, pc2], axis1, axis2)
+        sh.scatterHist(self.target_sample_pca[:, pc1], self.target_sample_pca[:, pc2], self.projection_after[:, pc1], 
+                       self.projection_after[:, pc2], axis1, axis2)
+        
+    def scatter_plot(self):        
+        df1 = pd.concat([self.target_pca_df, self.source_pca_df])
+        p1 = ggplot(df1, aes(x='PC1', y="PC2", color='tissue', shape='study')) + geom_point()
+        print(p1)
+        
+        df2 = pd.concat([self.target_pca_df, self.calibrated_source_pca_df])
+        p2 = ggplot(df2, aes(x='PC1', y="PC2", color='tissue', shape='study')) + geom_point()
+        print(p2)
+        
         
     def save_calibrated(self, calibrated_path=''):
         # df = pd.DataFrame(self.calibrated_source)
