@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import NullFormatter
 
 def scatterHist(x1,x2, y1,y2, axis1='', axis2=''):
+    plt.style.use('ggplot')
     nullfmt = NullFormatter()         # no labels
     
     # definitions for the axes
