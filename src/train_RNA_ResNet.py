@@ -85,10 +85,6 @@ class ResNet():
         self.lrate = LearningRateScheduler(step_decay)
         optimizer = keras.optimizers.Adam()
         
-        n = self.source.shape[0]
-        m = self.source.shape[0]
-        weights = [1/n**2, 1/(n*m), 1/m**2]
-        
         self.cost = cf.MMD(self.block3_output, self.target, MMDTargetValidation_split=0.1,
                            MMDTargetSampleSize=target_sample_size, n_neighbors=n_neighbors
                           )
