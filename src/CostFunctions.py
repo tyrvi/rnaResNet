@@ -12,7 +12,7 @@ IntType = 'int32'
 FloatType = 'float32'
 
 #calculate the squared distance between x and y
-def squaredDistance(X,Y):
+def squaredDistance(X, Y):
     # X is nxd, Y is mxd, returns nxm matrix of all pairwise Euclidean distances
     # broadcasted subtraction, a square, and a sum.
     r = K.expand_dims(X, axis=1)
@@ -47,7 +47,7 @@ class MMD:
                 #nearest neighbor is the point so we need to exclude it
                 med[ii]=np.median(distances[:,1:n_neighbors])
             med = np.median(med)  
-            scales = [med/2, med, med*2] # CyTOF    
+            scales = [med/2, med, med*2] # CyTOF
             print(scales)
             
         scales = K.variable(value=np.asarray(scales))
@@ -57,7 +57,7 @@ class MMD:
             weights = K.eval(K.shape(scales)[0])
             
         weights = K.variable(value=np.asarray(weights))
-        self.MMDLayer =  MMDLayer
+        self.MMDLayer = MMDLayer
         MMDTargetTrain, MMDTargetValidation = train_test_split(MMDTargetTrain, test_size=MMDTargetValidation_split, random_state=42)
         self.MMDTargetTrain = K.variable(value=MMDTargetTrain)
         self.MMDTargetTrainSize = K.eval(K.shape(self.MMDTargetTrain)[0])
@@ -67,19 +67,17 @@ class MMD:
         self.kernel = self.RaphyKernel
         self.scales = scales
         self.weights = weights
-        
     
     #calculate the raphy kernel applied to all entries in a pairwise distance matrix
     def RaphyKernel(self, X, Y):
         #expand dist to a 1xnxm tensor where the 1 is broadcastable
-        sQdist = K.expand_dims(squaredDistance(X,Y),0) 
+        sQdist = K.expand_dims(squaredDistance(X,Y), 0) 
         #expand scales into a px1x1 tensor so we can do an element wise exponential
-        self.scales = K.expand_dims(K.expand_dims(self.scales,-1),-1)
+        self.scales = K.expand_dims(K.expand_dims(self.scales, -1), -1)
         #expand scales into a px1x1 tensor so we can do an element wise exponential
-        self.weights = K.expand_dims(K.expand_dims(self.weights,-1),-1)
-        #calculated the kernal for each scale weight on the distance matrix and sum them up
-        return K.sum(self.weights*K.exp(-sQdist / (K.pow(self.scales,2))),0)
-    
+        self.weights = K.expand_dims(K.expand_dims(self.weights, -1), -1)
+        #calculated the kernel for each scale weight on the distance matrix and sum them up
+        return K.sum(self.weights * K.exp(-sQdist / (K.pow(self.scales, 2))), 0)
     
     #Calculate the MMD cost
     def cost(self, source, target):
@@ -101,14 +99,14 @@ class MMD:
         #this is a subset operation (not a very pretty way to do it)
         MMDTargetSampleTrain = K.gather(self.MMDTargetTrain,sample)
         #do the same for the validation set
-        sample = K.cast(K.round(K.random_uniform_variable(shape=tuple([self.MMDTargetSampleSize]), low=0, 
-                                                 high=self.MMDTargetValidationSize-1)), IntType)
+        sample = K.cast(K.round(K.random_uniform_variable(shape=tuple([self.MMDTargetSampleSize]),
+                                                          low=0, high=self.MMDTargetValidationSize-1)), IntType)
         #and the subset operation
-        MMDTargetSampleValidation = K.gather(self.MMDTargetValidation,sample)
+        MMDTargetSampleValidation = K.gather(self.MMDTargetValidation, sample)
         #create the sample based on whether we are in training or validation steps
         MMDtargetSample = K.in_train_phase(MMDTargetSampleTrain, MMDTargetSampleValidation) 
         #return the MMD cost for this subset
-        ret= self.cost(self.MMDLayer,MMDtargetSample)
+        ret= self.cost(self.MMDLayer, MMDtargetSample)
         #pretty dumb but y_treu has to be in the cost for keras to not barf when cleaning up
         ret = ret + 0*K.sum(y_pred)+0*K.sum(y_true)
         return ret

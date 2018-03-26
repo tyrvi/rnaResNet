@@ -1,22 +1,12 @@
-import os.path
+#from Calibration_Util import DataHandler as dh 
+#from Calibration_Util import FileIO as io
 import keras.optimizers
-from Calibration_Util import DataHandler as dh 
-from Calibration_Util import FileIO as io
 from keras.layers import Input, Dense, merge, Activation, add
 from keras.models import Model
 from keras import callbacks as cb
 import numpy as np
 import matplotlib
 from keras.layers.normalization import BatchNormalization
-#detect display
-import os
-havedisplay = "DISPLAY" in os.environ
-#if we have a display use a plotting backend
-if havedisplay:
-    matplotlib.use('TkAgg')
-else:
-    matplotlib.use('Agg')
-
 import CostFunctions as cf
 import Monitoring as mn
 from keras.regularizers import l2
@@ -24,10 +14,7 @@ from sklearn import decomposition
 from keras.callbacks import LearningRateScheduler
 import math
 import ScatterHist as sh
-import MultiScatterHist as msh
 from keras import initializers
-from numpy import genfromtxt
-import sklearn.preprocessing as prep
 import tensorflow as tf
 import keras.backend as K
 
@@ -49,7 +36,7 @@ class ResNet():
         
         self.inputDim = self.target.shape[1]
         
-    def init_res_net(self):
+    def init_res_net(self, target_sample_size=100, n_neighbors=10):
         # input
         calibInput = Input(shape=(self.inputDim, ))
 
@@ -84,9 +71,9 @@ class ResNet():
         block3_a2 = Activation('relu')(block3_bn2)
         block3_w2 = Dense(self.layer_sizes[0], activation='linear', kernel_regularizer=l2(self.l2_penalty), 
                           kernel_initializer=initializers.RandomNormal(stddev=1e-4))(block3_a2)
-        block3_output = add([block3_w2, calibInput])
+        self.block3_output = add([block3_w2, calibInput])
 
-        self.calibMMDNet = Model(inputs=calibInput, outputs=block3_output)
+        self.calibMMDNet = Model(inputs=calibInput, outputs=self.block3_output)
         
         def step_decay(epoch):
             initial_lrate = 0.1
@@ -97,18 +84,30 @@ class ResNet():
         
         self.lrate = LearningRateScheduler(step_decay)
         optimizer = keras.optimizers.Adam()
-
+        
+        n = self.source.shape[0]
+        m = self.source.shape[0]
+        weights = [1/n**2, 1/(n*m), 1/m**2]
+        
+        self.cost = cf.MMD(self.block3_output, self.target, MMDTargetValidation_split=0.1,
+                           MMDTargetSampleSize=target_sample_size, n_neighbors=n_neighbors
+                          )
+        
         self.calibMMDNet.compile(optimizer=optimizer, 
-                            loss=lambda y_true,y_pred: 
-                               cf.MMD(block3_output, self.target, MMDTargetValidation_split=0.1,
-                                     MMDTargetSampleSize=100, n_neighbors=10).KerasCost(y_true, y_pred)
+                            loss=lambda y_true,y_pred: self.cost.KerasCost(y_true, y_pred)
                            )
+
+        
+#         self.calibMMDNet.compile(optimizer=optimizer, 
+#                             loss=lambda y_true,y_pred: 
+#                                cf.MMD(self.block3_output, self.target, MMDTargetValidation_split=0.1,
+#                                      MMDTargetSampleSize=100, n_neighbors=10).KerasCost(y_true, y_pred)
+#                            )
 
         K.get_session().run(tf.global_variables_initializer())
 
         self.source_labels = np.zeros(self.source.shape)
-        print(self.source_labels.shape)
-        
+        # print(self.source_labels.shape)
         
     def train(self, epochs=2000, batch_size=20, validation_split=0.1, verbose=1,
              callbacks=[]):
@@ -123,7 +122,6 @@ class ResNet():
                                                  index=self.source_df.index, columns=self.source_df.columns[2:])
         self.calibrated_source_df.insert(0, 'study', self.source_df['study'])
         self.calibrated_source_df.insert(1, 'tissue', self.source_df['tissue'])
-        
         
     def pca(self):
         pca = decomposition.PCA()
@@ -152,46 +150,8 @@ class ResNet():
         self.calibrated_source_pca_df.insert(0, 'study', self.source_df['study'])
         self.calibrated_source_pca_df.insert(1, 'tissue', self.source_df['tissue'])
         
-        
-    def scatter_hist(self, pc1=0, pc2=1):
-        axis1 = 'PC' + str(pc1)
-        axis2 = 'PC' + str(pc2)
-        sh.scatterHist(self.target_sample_pca[:, pc1], self.target_sample_pca[:, pc2], self.projection_before[:, pc1], 
-                       self.projection_before[:, pc2], axis1, axis2)
-        sh.scatterHist(self.target_sample_pca[:, pc1], self.target_sample_pca[:, pc2], self.projection_after[:, pc1], 
-                       self.projection_after[:, pc2], axis1, axis2)
-        
-    def scatter_plot(self):        
-        df1 = pd.concat([self.target_pca_df, self.source_pca_df])
-        p1 = ggplot(df1, aes(x='PC1', y="PC2", color='tissue', shape='study')) + geom_point()
-        print(p1)
-        
-        df2 = pd.concat([self.target_pca_df, self.calibrated_source_pca_df])
-        p2 = ggplot(df2, aes(x='PC1', y="PC2", color='tissue', shape='study')) + geom_point()
-        print(p2)
-        
-        
-    def multi_scatter_hist(self, pc1=0, pc2=1, cm={}, title=''):
-        axis1 = 'PC' + str(pc1)
-        axis2 = 'PC' + str(pc2)
-        
-        # cm = {'breast': 'red', 'prostate': 'blue', 'thyroid': 'green'}
-
-        source_colors = np.array(list(map(lambda t: cm[t], self.source_df['tissue'].values)))
-        target_colors = np.array(list(map(lambda t: cm[t], self.target_df['tissue'].values)))
-        
-        msh.multiScatterHist(self.target_sample_pca[:,pc1], self.target_sample_pca[:,pc2], 
-                             self.projection_before[:,pc1], self.projection_before[:,pc2], 
-                             target_colors, source_colors, axis1, axis2, title)
-
-        msh.multiScatterHist(self.target_sample_pca[:,pc1], self.target_sample_pca[:,pc2], 
-                             self.projection_after[:,pc1], self.projection_after[:,pc2], 
-                             target_colors, source_colors, axis1, axis2, title)
     
-    
-    def save_calibrated(self, calibrated_path=''):
-        # df = pd.DataFrame(self.calibrated_source)
-        
-        self.calibrated_source_df.to_csv(calibrated_path)
+    def save_calibrated(self, path=''):
+        self.calibrated_source_df.to_csv(path)
         
                         

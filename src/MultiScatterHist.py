@@ -37,7 +37,7 @@ def dfScatterHist(df1, df2, axis1, axis2, title=''):
     rect_histy = [left_h, bottom, 0.2, height]
     
     # start with a rectangular Figure
-    plt.figure(figsize=(12, 12))
+    plt.figure(figsize=(8, 8))
     
     plt.suptitle(title, fontsize=14, fontweight='bold')
        
@@ -49,23 +49,29 @@ def dfScatterHist(df1, df2, axis1, axis2, title=''):
     axHistx.xaxis.set_major_formatter(nullfmt)
     axHisty.yaxis.set_major_formatter(nullfmt)
     
-    axScatter.scatter(x1, y1, c=df1_color, cmap='Accent', marker=sm['GTEX'])
-    axScatter.scatter(x2, y2, c=df2_color, cmap='Accent', marker=sm['TCGA'])
+    cmap1 = plt.cm.get_cmap('Accent',max(df1_color)-min(df1_color)+1)
+    cmap2 = plt.cm.get_cmap('Accent',max(df2_color)-min(df2_color)+1)
+    
+    bounds = range(min(df1_color),max(df1_color)+2)
+    norm = colors.BoundaryNorm(bounds, cmap1.N)
+    
+    axScatter.scatter(x1, y1, c=df1_color, cmap=cmap1, marker=sm['GTEX'], label='GTEX')
+    axScatter.scatter(x2, y2, c=df2_color, cmap=cmap2, marker=sm['TCGA'], label='TCGA')
     
     # now determine nice limits by hand:
     binwidth = 0.5
-    xymax = np.max([np.max(np.fabs(x1)), np.max(np.fabs(x2))]) + 10
+    xymax = np.max([np.max(np.fabs(x1)), np.max(np.fabs(y1))]) + 10
     lim = (int(xymax/binwidth) + 1) * binwidth
     
-    axScatter.set_xlim((-lim, lim))
-    axScatter.set_ylim((-lim, lim))
+#     axScatter.set_xlim((-lim, lim))
+#     axScatter.set_ylim((-lim, lim))
     
     bins = np.arange(-lim, lim + binwidth, binwidth)
-    axHistx.hist(x1, bins=bins, color = 'blue', normed=True, stacked = True, histtype='step' )
-    axHisty.hist(x2, bins=bins, orientation='horizontal', color = 'blue', normed=True, 
+    axHistx.hist(x1, bins=bins, color = 'blue', density=True, stacked = True, histtype='step')
+    axHisty.hist(y1, bins=bins, orientation='horizontal', color = 'blue', density=True, 
                  stacked = True, histtype='step')
-    axHistx.hist(y1, bins=bins, color = 'red', normed=True, stacked = True, histtype='step')
-    axHisty.hist(y2, bins=bins, orientation='horizontal', color = 'red', normed=True, 
+    axHistx.hist(x2, bins=bins, color = 'red', density=True, stacked = True, histtype='step')
+    axHisty.hist(y2, bins=bins, orientation='horizontal', color = 'red', density=True, 
                  stacked = True, histtype='step')
     
     axHistx.set_xlim(axScatter.get_xlim())
@@ -75,10 +81,16 @@ def dfScatterHist(df1, df2, axis1, axis2, title=''):
     axHistx.set_yticklabels([])
     axHisty.set_xticklabels([])
     axHisty.set_yticklabels([])
+    
     axScatter.set_xlabel(axis1, fontsize=15)
     axScatter.set_ylabel(axis2, fontsize=15)
+    
+    #handles, labels = axScatter.get_legend_handles_labels()
+    #axScatter.legend(handles, labels, bbox_to_anchor=(1.55, 1))
+    axScatter.legend()
 
     plt.show()
+    
     
     
 
