@@ -88,7 +88,7 @@ class MMD:
         #calculate the bias MMD estimater (cannot be less than 0)
         MMD = K.mean(xx) - 2 * K.mean(xy) + K.mean(yy)
         #return the square root of the MMD because it optimizes better
-        return K.sqrt(MMD);
+        return K.sqrt(MMD)
 
 
     def KerasCost(self, y_true, y_pred):
