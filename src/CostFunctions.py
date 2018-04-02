@@ -40,7 +40,7 @@ class MMD:
         if scales == None:
             print("setting scales using KNN")
             med = np.zeros(20)
-            for ii in range(1,20):
+            for ii in range(0,20):
                 sample = MMDTargetTrain[np.random.randint(MMDTargetTrain.shape[0], size=MMDTargetSampleSize),:]
                 nbrs = NearestNeighbors(n_neighbors=n_neighbors).fit(sample)
                 distances, dummy = nbrs.kneighbors(sample)
@@ -55,7 +55,7 @@ class MMD:
         if weights == None:
             print("setting all scale weights to 1")
             weights = K.eval(K.shape(scales)[0])
-            
+
         weights = K.variable(value=np.asarray(weights))
         self.MMDLayer = MMDLayer
         MMDTargetTrain, MMDTargetValidation = train_test_split(MMDTargetTrain, test_size=MMDTargetValidation_split, random_state=42)
