@@ -31,8 +31,8 @@ class ResNet():
         self.source_df = pd.read_csv(source_path, sep=',', header=0, index_col=0)
         self.target_df = pd.read_csv(target_path, sep=',', header=0, index_col=0)
         
-        self.source = self.source_df.loc[:, "PC1":"PC20"].values
-        self.target = self.target_df.loc[:, "PC1":"PC20"].values
+        self.source = self.source_df.loc[:, "PC1":].values
+        self.target = self.target_df.loc[:, "PC1":].values
         
         self.inputDim = self.target.shape[1]
         
@@ -112,10 +112,15 @@ class ResNet():
         
         self.calibMMDNet.fit(self.source, self.source_labels, epochs=epochs, batch_size=batch_size,
                              validation_split=validation_split, verbose=verbose, callbacks=callbacks)
+
         
+    def predict(self):
         self.calibrated_source = self.calibMMDNet.predict(self.source)
+        
         self.calibrated_source_df = pd.DataFrame(self.calibrated_source, 
-                                                 index=self.source_df.index, columns=self.source_df.columns[2:])
+                                                 index=self.source_df.index,
+                                                 columns=self.source_df.columns[2:])
+        
         self.calibrated_source_df.insert(0, 'study', self.source_df['study'])
         self.calibrated_source_df.insert(1, 'tissue', self.source_df['tissue'])
         

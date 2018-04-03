@@ -8,6 +8,20 @@ from math import floor
 IntType = 'int32'
 FloatType = 'float32'
 
+def calculate_ranges(df_counts):
+    num_tissues = df_counts.shape[0]
+    ranges = np.zeros((num_tissues, 2), dtype=IntType)
+    
+    low = 0
+    for i in range(num_tissues):
+        tissue = df_counts.index[i]
+        high = low + df_counts[i]
+        print("tissue = {0}, low = {1}, high = {2}".format(tissue, low, high))
+        ranges[i] = [low, high]
+        low = high
+        
+    return ranges
+
 def squared_distance(X, Y):
     # X is nxd, Y is mxd, returns nxm matrix of all pairwise Euclidean distances
     # broadcasted subtraction, a square, and a sum.
@@ -25,20 +39,6 @@ class MultiMMD:
     scales = None
     weights = None
     n_neighbors = None
-
-    def calculate_ranges(self, df_counts):
-        num_tissues = df_counts.shape[0]
-        ranges = np.zeros((num_tissues, 2), dtype=IntType)
-                
-        low = 0
-        for i in range(num_tissues):
-            tissue = df_counts.index[i]
-            high = low + df_counts[i]
-            print("tissue = {0}, low = {1}, high = {2}".format(tissue, low, high))
-            ranges[i] = [low, high]
-            low = high
-
-        return ranges
     
     def __init__(self,
                  output_layer,
@@ -61,7 +61,7 @@ class MultiMMD:
             scales = np.zeros((num_tissues, 3))
             
             # calculate tissue ranges in target
-            ranges = self.calculate_ranges(target_df_counts)
+            ranges = calculate_ranges(target_df_counts)
             print("")
             
             for t in range(num_tissues):
@@ -119,9 +119,9 @@ class MultiMMD:
         print("")
 
         print("calculating training ranges")
-        self.target_train_ranges = self.calculate_ranges(self.target_train_counts)
+        self.target_train_ranges = calculate_ranges(self.target_train_counts)
         print("\ncalculating validation ranges")
-        self.target_validate_ranges = self.calculate_ranges(self.target_validate_counts)
+        self.target_validate_ranges = calculate_ranges(self.target_validate_counts)
 
         self.target_sample_size = target_sample_size
         self.sample_ratio = sample_ratio
