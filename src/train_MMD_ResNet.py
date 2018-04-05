@@ -115,6 +115,7 @@ target = preprocessor.transform(target)
 
 
 calibInput = Input(shape=(inputDim,))
+
 block1_bn1 = BatchNormalization()(calibInput)
 block1_a1 = Activation('relu')(block1_bn1)
 block1_w1 = Dense(mmdNetLayerSizes[0], activation='linear',kernel_regularizer=l2(l2_penalty), 
@@ -124,6 +125,7 @@ block1_a2 = Activation('relu')(block1_bn2)
 block1_w2 = Dense(inputDim, activation='linear',kernel_regularizer=l2(l2_penalty),
                   kernel_initializer=initializers.RandomNormal(stddev=1e-4))(block1_a2) 
 block1_output = add([block1_w2, calibInput])
+
 block2_bn1 = BatchNormalization()(block1_output)
 block2_a1 = Activation('relu')(block2_bn1)
 block2_w1 = Dense(mmdNetLayerSizes[1], activation='linear',kernel_regularizer=l2(l2_penalty), 
@@ -133,6 +135,7 @@ block2_a2 = Activation('relu')(block2_bn2)
 block2_w2 = Dense(inputDim, activation='linear',kernel_regularizer=l2(l2_penalty), 
                   kernel_initializer=initializers.RandomNormal(stddev=1e-4))(block2_a2) 
 block2_output = add([block2_w2, block1_output])
+
 block3_bn1 = BatchNormalization()(block2_output)
 block3_a1 = Activation('relu')(block3_bn1)
 block3_w1 = Dense(mmdNetLayerSizes[1], activation='linear',kernel_regularizer=l2(l2_penalty), 

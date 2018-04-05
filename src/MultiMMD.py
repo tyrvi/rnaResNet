@@ -177,8 +177,10 @@ class MultiMMD:
             source_labels = K.eval(y_true)
             source_index = np.where(np.isin(source_labels, t))[0]
             source = K.eval(self.output_layer)[source_index]
-
+            #source = K.cast_to_floatx(source)
+            
             target = K.in_train_phase(sample_target_train, sample_target_validate)
+            #target = sample_target_train
 
             ret += self.cost(source, target, t)
 
