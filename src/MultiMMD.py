@@ -8,10 +8,11 @@ from math import floor
 IntType = 'int32'
 FloatType = 'float32'
 
+
 def calculate_ranges(df_counts):
     num_tissues = df_counts.shape[0]
     ranges = np.zeros((num_tissues, 2), dtype=IntType)
-    
+
     low = 0
     for i in range(num_tissues):
         tissue = df_counts.index[i]
@@ -19,8 +20,9 @@ def calculate_ranges(df_counts):
         print("tissue = {0}, low = {1}, high = {2}".format(tissue, low, high))
         ranges[i] = [low, high]
         low = high
-        
+
     return ranges
+
 
 def squared_distance(X, Y):
     # X is nxd, Y is mxd, returns nxm matrix of all pairwise Euclidean distances
@@ -28,18 +30,19 @@ def squared_distance(X, Y):
     r = K.expand_dims(X, axis=1)
     return K.sum(K.square(r-Y), axis=-1)
 
+
 class MultiMMD:
     output_layer = None
     target_train = None
     target_validate = None
     sample_ratio = 0.75
-    tissue_map = {'breast': 0, 'thyroid':1, 'prostate':2}
+    tissue_map = {'breast': 0, 'thyroid': 1, 'prostate': 2}
     tissue_mapper = lambda t: tissue_map[t]
     kernel = None
     scales = None
     weights = None
     n_neighbors = None
-    
+
     def __init__(self,
                  output_layer,
                  target_df,
@@ -59,11 +62,11 @@ class MultiMMD:
             print("setting scales using KNN")
             num_tissues = target_df_counts.shape[0]
             scales = np.zeros((num_tissues, 3))
-            
+
             # calculate tissue ranges in target
             ranges = calculate_ranges(target_df_counts)
             print("")
-            
+
             for t in range(num_tissues):
                 tissue = target_df_counts.index[t]
                 print("setting scales for tissue {0} {1}".format(t, tissue))
@@ -101,7 +104,7 @@ class MultiMMD:
         # extract target and validate tissue counts for determining ranges
         self.target_train_counts = target_train_df['tissue'].value_counts().sort_index()
         self.target_validate_counts = target_validate_df['tissue'].value_counts().sort_index()
-        
+
         print("\ntarget train counts")
         print(self.target_train_counts)
         print("\ntarget validation counts")
@@ -129,7 +132,7 @@ class MultiMMD:
         self.num_tissues = self.target_train_counts.shape[0]
         self.kernel = self.RaphyKernel
         self.output_layer = output_layer
-        
+
     def RaphyKernel(self, X, Y, tissue_num):
         # returns a 1xnxm tensor where 1 is broadcastable
         sq_dist = K.expand_dims(squared_distance(X, Y), 0)
@@ -177,17 +180,12 @@ class MultiMMD:
             source_labels = K.eval(y_true)
             source_index = np.where(np.isin(source_labels, t))[0]
             source = K.eval(self.output_layer)[source_index]
-            #source = K.cast_to_floatx(source)
-            
+            # source = K.cast_to_floatx(source)
+
             target = K.in_train_phase(sample_target_train, sample_target_validate)
-            #target = sample_target_train
+            # target = sample_target_train
 
             ret += self.cost(source, target, t)
 
         ret = ret + 0*K.cast(K.sum(y_pred), FloatType) + 0*K.cast(K.sum(y_true), FloatType)
         return ret
-
-            
-            
-            
-        
