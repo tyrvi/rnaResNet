@@ -20,7 +20,7 @@ import tensorflow as tf
 import keras.backend as K
 
 import pandas as pd
-from ggplot import *
+# from ggplot import *
 
 MMD = 'MMD'
 MULTI_MMD = 'MULTI_MMD'
