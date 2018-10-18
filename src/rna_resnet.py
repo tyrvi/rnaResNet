@@ -133,8 +133,13 @@ class ResNet():
                              validation_split=validation_split, verbose=verbose, callbacks=callbacks)
 
         
-    def predict(self):
-        self.calibrated_source = self.calibMMDNet.predict(self.source)
+    def predict(self, data=None):
+        if data is None:
+            print("predicting on self.source")
+            self.calibrated_source = self.calibMMDNet.predict(self.source)
+        else:
+            print("predicting on provided data")
+            self.calibrated_source = self.calibMMDNet.predict(data)
         
         self.calibrated_source_df = pd.DataFrame(self.calibrated_source, 
                                                  index=self.source_df.index,
