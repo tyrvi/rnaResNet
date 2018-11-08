@@ -4,7 +4,7 @@ Created on Jul 13, 2016
 @author: Kelly P. Stanton
 '''
 import sys
-from keras import backend as K
+import keras.backend as K
 import numpy as np
 from sklearn.cross_validation import train_test_split
 from sklearn.neighbors import NearestNeighbors
@@ -121,7 +121,7 @@ class MultiMMD:
     target_validation_labels = None
     target_validation_size = None
     target_sample_size = None
-    target_val_sample_size
+    target_val_sample_size = None
     output_layer = None
 
     kernel = None
@@ -135,7 +135,7 @@ class MultiMMD:
                  target_labels,
                  target_val_split=0.1,
                  target_sample_size=100,
-                 target_val_sample_size=20
+                 target_val_sample_size=20,
                  n_neighbors = 10,
                  scales = None,
                  weights = None):
@@ -143,7 +143,7 @@ class MultiMMD:
         if scales == None:
             print("setting scales using KNN")
             med = np.zeros(20)
-            for ii in range(0,20):
+            for ii in range(0, 20):
                 sample = target[np.random.randint(target.shape[0], size=target_sample_size),:]
                 nbrs = NearestNeighbors(n_neighbors=n_neighbors).fit(sample)
                 distances, dummy = nbrs.kneighbors(sample)
@@ -162,7 +162,7 @@ class MultiMMD:
         weights = K.variable(value=np.asarray(weights))
 
         
-        target_train, target_val, target_train_labels, target_val_labels = train_test_split(target, target_labels test_size=target_val_split, random_state=42)
+        target_train, target_val, target_train_labels, target_val_labels = train_test_split(target, target_labels, test_size=target_val_split, random_state=42)
 
         self.output_layer = output_layer
         
@@ -171,7 +171,7 @@ class MultiMMD:
         self.target_train_size = K.eval(K.shape(self.target_train)[0])
         self.target_validation = K.variable(value=target_val)
         self.target_validation_labels = K.variable(value=target_val_labels, dtype=IntType)
-        self.MMDTargetValidationSize = K.eval(K.shape(self.target_validation)[0])
+        self.target_validation_size = K.eval(K.shape(self.target_validation)[0])
 
         self.target_sample_size = target_sample_size
 

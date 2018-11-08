@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib
 from keras.layers.normalization import BatchNormalization
 import CostFunctions as cf
-import MultiMMD as m
+# import MultiMMD as m
 import Monitoring as mn
 from keras.regularizers import l2
 from sklearn import decomposition
@@ -31,7 +31,7 @@ class ResNet():
         self.layer_sizes = layer_sizes
         self.l2_penalty = l2_penalty
     
-    def load_data(self, source_path, target_path):        
+    def load_data(self, source_path, target_path):
         self.source_df = pd.read_csv(source_path, sep=',', header=0, index_col=0)
         self.target_df = pd.read_csv(target_path, sep=',', header=0, index_col=0)
         
@@ -94,43 +94,27 @@ class ResNet():
                           MMDTargetSampleSize=target_sample_size, n_neighbors=n_neighbors)
             source_labels = np.zeros(self.source.shape)
         elif cost == MULTI_MMD:
-            cost = m.MultiMMD(self.block3_output, self.target_df, target_validation_split=val_split,
-                              target_sample_size=target_sample_size, n_neighbors=n_neighbors)
             tissue_map = {'breast': 0, 'thyroid':1, 'prostate':2}
             tm = lambda t: tissue_map[t]
             source_labels = self.source_df['tissue'].map(tm).values
+            source_labels = np.repeat(source_labels, self.source.shape[1]).reshape(self.source.shape)
+            
+            self.target_labels = self.target_df['tissue'].map(tm).values
+            cost = cf.MultiMMD(self.block3_output, self.target, self.target_labels, target_val_split=val_split, target_sample_size=target_sample_size, n_neighbors=n_neighbors)
         else:
             print("ERROR: you must specify a cost function")
             return
 
+        self.source_labels = source_labels
         self.cost = cost
-        # self.cost = cf.MMD(self.block3_output, self.target, MMDTargetValidation_split=val_split,
-        #                   MMDTargetSampleSize=target_sample_size, n_neighbors=n_neighbors        )
-
         
-        self.calibMMDNet.compile(optimizer=optimizer, 
-                            loss=lambda y_true, y_pred: self.cost.KerasCost(y_true, y_pred)
-                           )
-
-        
-#         self.calibMMDNet.compile(optimizer=optimizer, 
-#                             loss=lambda y_true,y_pred: 
-#                                cf.MMD(self.block3_output, self.target, MMDTargetValidation_split=0.1,
-#                                      MMDTargetSampleSize=100, n_neighbors=10).KerasCost(y_true, y_pred)
-#                            )
+        self.calibMMDNet.compile(optimizer=optimizer, loss=lambda y_true, y_pred: self.cost.KerasCost(y_true, y_pred))
 
         K.get_session().run(tf.global_variables_initializer())
-
-        self.source_labels = source_labels
-        # self.source_labels = np.zeros(self.source.shape)
-        # print(self.source_labels.shape)
         
     def train(self, epochs=2000, batch_size=20, validation_split=0.1, verbose=1, callbacks=[]):
-        
         # self.lrate, cb.EarlyStopping(monitor='val_loss', patience=50, mode='auto')
-        
-        self.calibMMDNet.fit(self.source, self.source_labels, epochs=epochs, batch_size=batch_size,
-                             validation_split=validation_split, verbose=verbose, callbacks=callbacks)
+        self.calibMMDNet.fit(self.source, self.source_labels, epochs=epochs, batch_size=batch_size, validation_split=validation_split, verbose=verbose, callbacks=callbacks)
 
         
     def predict(self, data=None):
