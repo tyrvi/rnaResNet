@@ -1,0 +1,170 @@
+---
+title: "breast_bladder_thyroid_preprocessing"
+author: "Thais Minet"
+date: "3/3/2018"
+output: html_document
+---
+
+# Preprocessing of RNA-seq data
+
+***
+> p = paran(data.log@data, iterations = 500)
+
+Using eigendecomposition of correlation matrix.
+Computing: 10%  20%  30%  40%  50%  60%  70%  80%  90%  100%
+
+
+Results of Horn's Parallel Analysis for component retention
+500 iterations, using the mean estimate
+
+-------------------------------------------------- 
+Component   Adjusted    Unadjusted    Estimated 
+            Eigenvalue  Eigenvalue    Bias 
+-------------------------------------------------- 
+1         776.43023  776.879466      0.449227
+2          16.617828   17.060942      0.443114
+3           8.873398    9.312026      0.438628
+4           6.466199    6.901024      0.434824
+5           3.831106    4.262450      0.431343
+6           1.155209    1.583063      0.427853
+-------------------------------------------------- 
+
+Adjusted eigenvalues > 1 indicate dimensions to retain.
+(6 components retained)
+***
+
+
+### Load Utility functions
+```{r}
+source("utility.R")
+library("paran")
+```
+
+
+### Data preprocessing
+
+Load all of the unnormalized data into `data`.
+```{r}
+file = "data/all-unnorm.csv"
+data = read.csv(file, header = TRUE, row.names = 1)
+rm(file)
+print(dim(data))
+```
+
+```{r}
+data[1:5, 1:2]
+```
+
+Load the data into the S4 `rnaObj`.
+```{r}
+data = rnaObj(data = data)
+```
+
+Now we initialize the object choosing the tissues we want to analyze and prepare for the neural network. The tissues available are `bladder`, `breast`, `cervix`, `colon`, `liver`, `prostate`, `stomach`, `thyroid` and `uterus`. To select only a subset of the tissues provide a vector to the initialization function that specifies which tissues to keep e.g. `initialize(data, keep.tissue = c("bladder", "breast", "thyroid"))`. By default no transformation are applied to the data when it is initialized. To apply a log transformation set `log = TRUE`. To apply z-score set `normalize = TRUE`. To quantile normalize set `qn = TRUE`.
+```{r}
+tissues = c("breast", "prostate", "thyroid")
+
+data = initialize(data, keep.tissue = tissues)
+data.log = initialize(data, keep.tissue = tissues, log = TRUE)
+data.norm = initialize(data, keep.tissue = tissues, log = TRUE, normalize = TRUE)
+data.qn = initialize(data, keep.tissue = tissues, log = TRUE, qn = TRUE)
+
+# data = initialize(data)
+# data.log = initialize(data, log = TRUE)
+# data.norm = initialize(data, log = TRUE, normalize = TRUE)
+# data.qn = initialize(data, log = TRUE, qn = TRUE)
+```
+
+Display how many of each tissue we have.
+```{r}
+print(data@counts)
+```
+
+
+### PCA & Scatterplot
+Compute PCA of each object.
+```{r}
+data = doPCA(data)
+data.log = doPCA(data.log)
+data.norm = doPCA(data.norm)
+data.qn = doPCA(data.qn)
+```
+
+
+Do a scatter plot of the data to visualize.
+```{r}
+scatterPlot(data, title = "Unnormalized data")
+scatterPlot(data.log, title = "Unnormalized log transformed data")
+scatterPlot(data.norm, title = "Unnormalized log transformed and z-scored data")
+scatterPlot(data.qn, title = "Unnormalized log transformed and quantile normalized data")
+```
+
+Do combat things
+```{r}
+annotation = data.log@meta
+rownames(annoation) = colnames(data.log@data)
+
+batch = data.log@meta$study
+design = model.matrix(~1, data = data.log@meta)
+combat = ComBat(dat = data.log@data, batch = batch, mod = design, par.prior = TRUE)
+
+pheatmap(cor(data.log@data, method='spearman'), main="after combat", show_rownames = FALSE, show_colnames = FALSE, annotation = annotation, annotation_row = annotation, annotation_legend = TRUE)
+pheatmap(cor(combat, method='spearman'), main="after combat", show_rownames = FALSE, show_colnames = FALSE, annotation = annotation, annotation_row = annotation, annotation_legend = TRUE)
+
+combat.pc = fast.prcomp(t(combat), center = FALSE, scale = FALSE)
+
+combat.pc.scores = data.frame(combat.pc$x[ ,1:100])
+combat.pc.load = data.frame(combat.pc$rotation[ , 1:100])
+combat.pc.percentage = (100*(combat.pc$sdev)^2 / sum(combat.pc$sdev^2))[1:100]
+
+combat.pc.meta = combat.pc.scores
+combat.pc.meta[, 'study'] = data.log@study
+combat.pc.meta[, 'tissue'] = data.log@tissue
+combat.pc.meta = arrange.vars(combat.pc.meta, c("study"=1, "tissue"=2))
+
+tissue = factor(data.log@tissue)
+study = factor(data.log@study)
+
+ggplot(combat.pc.scores, aes(x = PC1, y = PC2, shape = study, colour = tissue)) + 
+              geom_point(size = 2) + scale_color_hue(l = 55) + 
+              theme_bw() + 
+              guides(colour = guide_legend(order = 2), shape = guide_legend(order = 2)) +
+              ggtitle("Unnormalized log transformed with ComBat") + 
+              theme(plot.title = element_text(hjust = 0.5, lineheight=.8, face="bold"))
+```
+
+### Split data into GTEX and TCGA batches for input to neural network.
+```{r}
+log.gtex = data.log@pca.meta[grep("GTEX", rownames(data.log@pca.meta)), ]
+log.tcga = data.log@pca.meta[grep("TCGA", rownames(data.log@pca.meta)), ]
+
+norm.gtex = data.norm@pca.meta[grep("GTEX", rownames(data.norm@pca.meta)), ]
+norm.tcga = data.norm@pca.meta[grep("TCGA", rownames(data.norm@pca.meta)), ]
+
+qn.gtex = data.qn@pca.meta[grep("GTEX", rownames(data.qn@pca.meta)), ]
+qn.tcga = data.qn@pca.meta[grep("TCGA", rownames(data.qn@pca.meta)), ]
+```
+
+### Write PCA data to file for input to neural network
+Write respective batches
+```{r}
+write.csv(log.gtex[, 1:22], file = "data/processed/unnorm-log-20PC-GTEX-breast-prostate-thyroid.csv", row.names = TRUE)
+write.csv(log.tcga[, 1:22], file = "data/processed/unnorm-log-20PC-TCGA-breast-prostate-thyroid.csv", row.names = TRUE)
+
+write.csv(norm.gtex[, 1:22], file = "data/processed/unnorm-norm-20PC-GTEX-breast-prostate-thyroid.csv", row.names = TRUE)
+write.csv(norm.tcga[, 1:22], file = "data/processed/unnorm-norm-20PC-TCGA-breast-prostate-thyroid.csv", row.names = TRUE)
+
+write.csv(qn.gtex[, 1:22], file = "data/processed/unnorm-qn-20PC-GTEX-breast-prostate-thyroid.csv", row.names = TRUE)
+write.csv(qn.tcga[, 1:22], file = "data/processed/unnorm-qn-20PC-TCGA-breast-prostate-thyroid.csv", row.names = TRUE)
+
+rm(log.gtex, log.tcga, norm.gtex, norm.tcga, qn.gtex, qn.tcga)
+```
+
+
+Write complete data frame
+```{r}
+write.csv(data@pca.scores[, 1:22], file = "data/processed/unnorm-20PC-df-breast-prostate-thyroid.csv", row.names = TRUE)
+write.csv(data.log@pca.scores[, 1:22], file = "data/processed/unnorm-log-20PC-df-breast-prostate-thyroid.csv", row.names = TRUE)
+write.csv(data.norm@pca.scores[, 1:22], file = "data/processed/unnorm-norm-20PC-df-breast-prostate-thyroid.csv", row.names = TRUE)
+write.csv(data.qn@pca.scores[, 1:22], file = "data/processed/unnorm-qn-20PC-df-breast-prostate-thyroid.csv", row.names = TRUE)
+```

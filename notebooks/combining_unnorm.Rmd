@@ -1,0 +1,311 @@
+---
+title: "data_preprocessing"
+author: "Thais Minet"
+date: "1/26/2018"
+output: html_document
+---
+
+```
+$name_mapping{'BLCA'}='bladder'; #- Bladder Urothelial Carcinoma
+$name_mapping{'BRCA'}='breast'; #- Breast invasive carcinoma
+$name_mapping{'BRCA-T'}='breast-t'; #- Breast invasive carcinoma
+$name_mapping{'CESC'}='cervix uteri'; #- Cervical squamous cell carcinoma and endocervical adenocarcinoma
+$name_mapping{'CHOL'}='bile duct'; #- Cholangiocarcinoma
+$name_mapping{'COAD'}='colon'; #- Colon adenocarcinoma
+$name_mapping{'ESCA'}='esophagus'; #- Esophageal carcinoma
+$name_mapping{'HNSC'}=''; #- Head and Neck squamous cell carcinoma
+$name_mapping{'KICH'}='kidney'; #- Kidney Chromophobe
+$name_mapping{'KIRC'}='kidney'; #- Kidney renal clear cell carcinoma
+$name_mapping{'KIRP'}='kidney'; #- Kidney renal papillary cell carcinoma
+$name_mapping{'LIHC'}='liver'; #- Liver hepatocellular carcinoma
+$name_mapping{'LUAD'}='lung'; #- Lung adenocarcinoma
+$name_mapping{'LUSC'}='lung'; #- Lung squamous cell carcinoma
+$name_mapping{'PAAD'}='pancreas'; #- Pancreatic adenocarcinoma
+$name_mapping{'PCPG'}='adrenal'; #- Pheochromocytoma and Paraganglioma
+$name_mapping{'PRAD'}='prostate'; #- Prostate adenocarcinoma
+$name_mapping{'PRAD-T'}='prostate'; #- Prostate adenocarcinoma
+$name_mapping{'READ'}='rectum'; #- Rectum adenocarcinoma
+$name_mapping{'SARC'}='adipose'; #- Sarcoma
+$name_mapping{'SKCM'}='skin'; #- Skin Cutaneous Melanoma
+$name_mapping{'STAD'}='stomach'; #- Stomach adenocarcinoma
+$name_mapping{'STAD-T'}='stomach-t'; #- Stomach adenocarcinoma
+$name_mapping{'THCA'}='thyroid'; #- Thyroid carcinoma
+$name_mapping{'THYM'}='thymus'; #- Thymoma
+$name_mapping{'UCEC'}='uterus'; #- Uterine Corpus Endometrial Carcinoma
+```
+
+# Data Processing of RNA seq unnormalized data
+Load utility functions.
+```{r}
+source("utility.R")
+```
+
+### 1. Load & merge unnormalized data
+Read the data and merge the data frames
+
+#### Load GTEX
+```{r}
+# load gtex data
+gtex.bladder = read.table(file = "data/unnormalized/gtex/bladder-rsem-fpkm-gtex.txt", header = TRUE)
+len = length(gtex.bladder)
+colnames(gtex.bladder)[3:len] = make.names(rep(c("GTEX.bladder"), len-2), unique = TRUE)
+
+gtex.breast = read.table(file = "data/unnormalized/gtex/breast-rsem-fpkm-gtex.txt", header = TRUE)
+len = length(gtex.breast)
+colnames(gtex.breast)[3:len] = make.names(rep(c("GTEX.breast"), len-2), unique = TRUE)
+
+gtex.cervix = read.table(file = "data/unnormalized/gtex/cervix-rsem-fpkm-gtex.txt", header = TRUE)
+len = length(gtex.cervix)
+colnames(gtex.cervix)[3:len] = make.names(rep(c("GTEX.cervix"), len-2), unique = TRUE)
+
+gtex.colon = read.table(file = "data/unnormalized/gtex/colon-rsem-fpkm-gtex.txt", header = TRUE)
+len = length(gtex.colon)
+colnames(gtex.colon)[3:len] = make.names(rep(c("GTEX.colon"), len-2), unique = TRUE)
+
+gtex.liver = read.table(file = "data/unnormalized/gtex/liver-rsem-fpkm-gtex.txt", header = TRUE)
+len = length(gtex.liver)
+colnames(gtex.liver)[3:len] = make.names(rep(c("GTEX.liver"), len-2), unique = TRUE)
+
+gtex.prostate = read.table(file = "data/unnormalized/gtex/prostate-rsem-fpkm-gtex.txt", header = TRUE)
+len = length(gtex.prostate)
+colnames(gtex.prostate)[3:len] = make.names(rep(c("GTEX.prostate"), len-2), unique = TRUE)
+
+gtex.stomach = read.table(file = "data/unnormalized/gtex/stomach-rsem-fpkm-gtex.txt", header = TRUE)
+len = length(gtex.stomach)
+colnames(gtex.stomach)[3:len] = make.names(rep(c("GTEX.stomach"), len-2), unique = TRUE)
+
+gtex.thyroid = read.table(file = "data/unnormalized/gtex/thyroid-rsem-fpkm-gtex.txt", header = TRUE)
+len = length(gtex.thyroid)
+colnames(gtex.thyroid)[3:len] = make.names(rep(c("GTEX.thyroid"), len-2), unique = TRUE)
+
+gtex.uterus = read.table(file = "data/unnormalized/gtex/uterus-rsem-fpkm-gtex.txt", header = TRUE)
+len = length(gtex.uterus)
+colnames(gtex.uterus)[3:len] = make.names(rep(c("GTEX.uterus"), len-2), unique = TRUE)
+```
+
+#### Load TCGA
+```{r}
+# load tcga tissues
+tcga.bladder = read.table(file = "data/unnormalized/tcga/blca-rsem-fpkm-tcga.txt", header = TRUE)
+len = length(tcga.bladder)
+colnames(tcga.bladder)[3:len] = make.names(rep(c("TCGA.bladder"), len-2), unique = TRUE)
+
+tcga.breast = read.table(file = "data/unnormalized/tcga/brca-rsem-fpkm-tcga.txt", header = TRUE)
+len = length(tcga.breast)
+colnames(tcga.breast)[3:len] = make.names(rep(c("TCGA.breast"), len-2), unique = TRUE)
+
+tcga.cervix = read.table(file = "data/unnormalized/tcga/cesc-rsem-fpkm-tcga.txt", header = TRUE)
+len = length(tcga.cervix)
+colnames(tcga.cervix)[3:len] = make.names(rep(c("TCGA.cervix"), len-2), unique = TRUE)
+
+tcga.colon = read.table(file = "data/unnormalized/tcga/coad-rsem-fpkm-tcga.txt", header = TRUE)
+len = length(tcga.colon)
+colnames(tcga.colon)[3:len] = make.names(rep(c("TCGA.colon"), len-2), unique = TRUE)
+
+tcga.liver = read.table(file = "data/unnormalized/tcga/lihc-rsem-fpkm-tcga.txt", header = TRUE)
+len = length(tcga.liver)
+colnames(tcga.liver)[3:len] = make.names(rep(c("TCGA.liver"), len-2), unique = TRUE)
+
+tcga.prostate = read.table(file = "data/unnormalized/tcga/prad-rsem-fpkm-tcga.txt", header = TRUE)
+len = length(tcga.prostate)
+colnames(tcga.prostate)[3:len] = make.names(rep(c("TCGA.prostate"), len-2), unique = TRUE)
+
+tcga.stomach = read.table(file = "data/unnormalized/tcga/stad-rsem-fpkm-tcga.txt", header = TRUE)
+len = length(tcga.stomach)
+colnames(tcga.stomach)[3:len] = make.names(rep(c("TCGA.stomach"), len-2), unique = TRUE)
+
+tcga.thyroid = read.table(file = "data/unnormalized/tcga/thca-rsem-fpkm-tcga.txt", header = TRUE)
+len = length(tcga.thyroid)
+colnames(tcga.thyroid)[3:len] = make.names(rep(c("TCGA.thyroid"), len-2), unique = TRUE)
+
+tcga.uterus = read.table(file = "data/unnormalized/tcga/ucec-rsem-fpkm-tcga.txt", header = TRUE)
+len = length(tcga.uterus)
+colnames(tcga.uterus)[3:len] = make.names(rep(c("TCGA.uterus"), len-2), unique = TRUE)
+```
+
+
+#### Combine data into one data frame
+```{r}
+data.list.gtex = list(gtex.bladder, gtex.breast, gtex.cervix, gtex.colon, gtex.liver, gtex.prostate, gtex.stomach, gtex.thyroid, gtex.uterus)
+data.list.tcga = list(tcga.bladder, tcga.breast, tcga.cervix, tcga.colon, tcga.liver, tcga.prostate, tcga.stomach, tcga.thyroid, tcga.uterus)
+data.list = list(gtex.bladder, gtex.breast, gtex.cervix, gtex.colon, gtex.liver, gtex.prostate, gtex.stomach, gtex.thyroid, gtex.uterus,
+                 tcga.bladder, tcga.breast, tcga.cervix, tcga.colon, tcga.liver, tcga.prostate, tcga.stomach, tcga.thyroid, tcga.uterus)
+
+# clean up
+rm(gtex.bladder, gtex.breast, gtex.cervix, gtex.colon, gtex.liver, gtex.prostate, gtex.stomach, gtex.thyroid, gtex.uterus,
+  tcga.bladder, tcga.breast, tcga.cervix, tcga.colon, tcga.liver, tcga.prostate, tcga.stomach, tcga.thyroid, tcga.uterus, len)
+
+# merge gtex data
+data.gtex = Reduce(function(x, y) {
+    merge(x, y, by=c('Hugo_Symbol', 'Entrez_Gene_Id'))
+  }, data.list.gtex)
+
+# merge tcga data
+data.tcga = Reduce(function(x, y) {
+    merge(x, y, by=c('Hugo_Symbol', 'Entrez_Gene_Id'))
+  }, data.list.tcga)
+
+# merge all data
+data = Reduce(function(x, y) {
+    merge(x, y, by=c('Hugo_Symbol', 'Entrez_Gene_Id'))
+  }, data.list)
+
+# clean up
+rm(data.list, data.list.gtex, data.list.tcga)
+```
+
+
+Remove the `Entrez_Gene_Id` column and set the `Hugo_Symbol` column to be the row names for each data frame
+```{r}
+rownames(data.gtex) = data.gtex[,1]
+data.gtex[,1:2] = NULL
+
+rownames(data.tcga) = data.tcga[,1]
+data.tcga[,1:2] = NULL
+
+rownames(data) = data[,1]
+data[,1:2] = NULL
+```
+
+
+
+DO NOT DO THIS
+### 2. Remove rows with ~0 means
+```{r}
+data.gtex = data.gtex[-which(rowMeans(data.gtex[,]) <= 0.01), ]
+data.tcga = data.tcga[-which(rowMeans(data.tcga[,]) <= 0.01), ]
+data = data[-which(rowMeans(data[,]) <= 0.01), ]
+
+# create data frame of tissue counts get gtex and tcga counts
+count.gtex = length(grep("GTEX*", colnames(data)))
+count.tcga = length(grep("TCGA*", colnames(data)))
+count.gtex.bladder = length(grep("GTEX.bladder*", colnames(data)))
+count.gtex.breast = length(grep("GTEX.breast*", colnames(data)))
+count.gtex.prostate = length(grep("GTEX.prostate*", colnames(data)))
+count.gtex.thyroid = length(grep("GTEX.thyroid*", colnames(data)))
+count.tcga.bladder = length(grep("TCGA.bladder*", colnames(data)))
+count.tcga.breast = length(grep("TCGA.breast*", colnames(data)))
+count.tcga.prostate = length(grep("TCGA.prostate*", colnames(data)))
+count.tcga.thyroid = length(grep("TCGA.thyroid*", colnames(data)))
+
+# count.names = c("total", "bladder", "breast", "prostate", "thyroid")
+
+
+counts = data.frame(total = c(count.gtex, count.tcga), bladder = c(count.gtex.bladder, count.tcga.bladder), breast = c(count.gtex.breast, count.tcga.breast),
+                    prostate = c(count.gtex.prostate, count.tcga.prostate), thyroid = c(count.gtex.thyroid, count.tcga.thyroid), row.names = c("GTEX", "TCGA"))
+
+rm(count.gtex, count.tcga, count.gtex.bladder, count.gtex.breast, count.gtex.prostate, count.gtex.thyroid, 
+   count.tcga.bladder, count.tcga.breast, count.tcga.prostate, count.tcga.thyroid)
+```
+
+
+### 3. Take log(data + 1)
+```{r}
+data.log.gtex = log2(data.gtex + 1)
+data.log.tcga = log2(data.tcga + 1)
+data.log = log2(data + 1)
+data.nobladder.log = log2(data.nobladder + 1)
+data.nobreast.log = log2(data.nobreast + 1)
+```
+
+
+### 4. Normalize data
+```{r}
+data.norm = t(scale(t(data.log), center = TRUE, scale = TRUE))
+data.nobladder.norm = t(scale(t(data.nobladder.log), center = TRUE, scale = TRUE))
+data.nobreast.norm = t(scale(t(data.nobreast.log), center = TRUE, scale = TRUE))
+```
+
+
+### 5. Compute PCA and plot
+PCA
+```{r}
+data.log.pc = fast.prcomp(t(data.log), center = FALSE, scale = FALSE)
+data.log.perc = 100*(data.log.pc$sdev)^2 / sum(data.log.pc$sdev^2)
+
+data.norm.pc = fast.prcomp(t(data.norm), center = FALSE, scale = FALSE)
+data.norm.perc = 100*(data.norm.pc$sdev)^2 / sum(data.norm.pc$sdev^2)
+
+data.nobladder.pc = fast.prcomp(t(data.nobladder.norm), center = FALSE, scale = FALSE)
+data.nobladder.perc = 100*(data.nobladder.pc$sdev)^2 / sum(data.nobladder.pc$sdev^2)
+
+data.nobreast.pc = fast.prcomp(t(data.nobreast.norm), center = FALSE, scale = FALSE)
+data.nobreast.perc = 100*(data.nobreast.pc$sdev)^2 / sum(data.nobreast.pc$sdev^2)
+```
+
+Plot PCA
+```{r}
+shapes = c(rep(0, counts["GTEX", "total"]), rep(19, counts["TCGA", "total"]))
+colors = c(rep("indianred", counts["GTEX", "bladder"]), rep("pink", counts["GTEX", "breast"]), 
+           rep("dodgerblue", counts["GTEX", "prostate"]), rep("forestgreen", counts["GTEX", "thyroid"]), 
+           rep("indianred", counts["TCGA", "bladder"]), rep("pink", counts["TCGA", "breast"]), 
+           rep("dodgerblue", counts["TCGA", "prostate"]), rep("forestgreen", counts["TCGA", "thyroid"]))
+
+# plot unnormalized log transformed data
+layout(rbind(1,2), heights=c(10,1))
+par(mar=c(2.75,3.75,2,1.25), mgp=c(2,1,0))
+par(xpd=TRUE)
+
+plot(data.log.pc$x[,1], data.log.pc$x[,2], pch=shapes, col=colors, xlab="PC1", ylab="PC2", main="Log2 transformed")
+par(mar=c(0, 0, 0, 0))
+plot.new()
+legend("bottomright", legend=c("Bladder", "Breast", "Prostate", "Thyroid"), col=c("indianred", "pink", "dodgerblue", "forestgreen"), 
+       cex=1, pch=20, ncol=(4), bty="n")
+legend("bottomleft", legend=c("GTEX","TCGA"), col="black", pch=c(0, 19), ncol=2, bty="n")
+
+
+# plot normalized log transformed data
+layout(rbind(1,2), heights=c(10,1))
+par(mar=c(2.75, 3.75, 2, 1.25), mgp=c(2, 1, 0))
+par(xpd=TRUE)
+
+plot(data.norm.pc$x[,1], data.norm.pc$x[,2], pch=shapes, col=colors, xlab="PC1", ylab="PC2", main="Log2 transformed & Z-score")
+par(mar=c(0, 0, 0, 0))
+plot.new()
+legend("bottomright", legend=c("Bladder", "Breast", "Prostate", "Thyroid"), col=c("indianred", "pink", "dodgerblue", "forestgreen"), 
+       cex=1, pch=20, ncol=(4), bty="n")
+legend("bottomleft", legend=c("GTEX","TCGA"), col="black", pch=c(0, 19), ncol=2, bty="n")
+```
+
+Plot data exlcuding bladder samples
+```{r}
+shapes.nobladder = c(rep(0, counts["GTEX", "total"]-counts["GTEX", "bladder"]), rep(19, counts["TCGA", "total"]-counts["TCGA", "bladder"]))
+colors.nobladder = c(rep("pink", counts["GTEX", "breast"]), 
+           rep("dodgerblue", counts["GTEX", "prostate"]), rep("forestgreen", counts["GTEX", "thyroid"]), 
+           rep("pink", counts["TCGA", "breast"]), 
+           rep("dodgerblue", counts["TCGA", "prostate"]), rep("forestgreen", counts["TCGA", "thyroid"]))
+
+# plot normalized log transformed data
+layout(rbind(1,2), heights=c(10,1))
+par(mar=c(2.75, 3.75, 2, 1.25), mgp=c(2, 1, 0))
+par(xpd=TRUE)
+
+plot(data.nobladder.pc$x[,1], data.nobladder.pc$x[,2], pch=shapes.nobladder, col=colors.nobladder, xlab="PC1", ylab="PC2", main="Log2 transformed & Z-score")
+par(mar=c(0, 0, 0, 0))
+plot.new()
+legend("bottomright", legend=c("Breast", "Prostate", "Thyroid"), col=c("pink", "dodgerblue", "forestgreen"), 
+       cex=1, pch=20, ncol=(4), bty="n")
+legend("bottomleft", legend=c("GTEX","TCGA"), col="black", pch=c(0, 19), ncol=2, bty="n")
+
+```
+
+Plot data excluding breast
+```{r}
+shapes.nobreast = c(rep(0, counts["GTEX", "total"]-counts["GTEX", "breast"]), rep(19, counts["TCGA", "total"]-counts["TCGA", "breast"]))
+colors.nobreast = c(rep("indianred", counts["GTEX", "bladder"]),  
+           rep("dodgerblue", counts["GTEX", "prostate"]), rep("forestgreen", counts["GTEX", "thyroid"]), 
+           rep("indianred", counts["TCGA", "bladder"]), 
+           rep("dodgerblue", counts["TCGA", "prostate"]), rep("forestgreen", counts["TCGA", "thyroid"]))
+
+# plot normalized log transformed data
+layout(rbind(1,2), heights=c(10,1))
+par(mar=c(2.75, 3.75, 2, 1.25), mgp=c(2, 1, 0))
+par(xpd=TRUE)
+
+plot(data.nobreast.pc$x[,1], data.nobreast.pc$x[,2], pch=shapes.nobreast, col=colors.nobreast, xlab="PC1", ylab="PC2", main="Log2 transformed & Z-score")
+par(mar=c(0, 0, 0, 0))
+plot.new()
+legend("bottomright", legend=c("Bladder", "Prostate", "Thyroid"), col=c("indianred", "dodgerblue", "forestgreen"), 
+       cex=1, pch=20, ncol=(4), bty="n")
+legend("bottomleft", legend=c("GTEX","TCGA"), col="black", pch=c(0, 19), ncol=2, bty="n")
+```

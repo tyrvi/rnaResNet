@@ -1,0 +1,52 @@
+---
+title: "data_analysis"
+author: "Thais Minet"
+date: "1/26/2018"
+output: html_document
+---
+# Data Processing of RNA seq unnormalized data
+
+### Data Preprocessing
+Load utility functions.
+```{r}
+source("utility.R")
+require(gmodels)
+require(ggplot2)
+```
+
+Read the data into 2 data frames called gtex and tcga using the `MultiMerge` function from `utility.R`. Then merge them into one 
+data frame.
+```{r}
+gtex = MultiMerge("unnormalized/gtex/")
+tcga = MultiMerge("unnormalized/tcga/")
+combined.data = merge(gtex, tcga, by=c('Hugo_Symbol', 'Entrez_Gene_Id'))
+```
+
+Remove the `Entrez_Gene_Id` column and set the `Hugo_Symbol` column to be the row names for each data frame.
+```{r}
+rownames(gtex) = gtex[,1]
+gtex[,1:2] = NULL
+rownames(tcga) = tcga[,1]
+tcga[,1:2] = NULL
+rownames(combined.data) = combined.data[,1]
+combined.data[,1:2] = NULL
+```
+
+Remove rows with means close to 0
+```{r}
+combined.data.nozero = combined.data[-which(rowMeans(combined.data[,]) <= 0.01), ]
+
+# get gtex and tcga counts
+count.gtex = length(grep("GTEX*", colnames(combined.data.nozero)))
+count.tcga = length(grep("TCGA*", colnames(combined.data.nozero)))
+```
+
+PCA
+```{r}
+pc.obj = fast.prcomp(t(combined.data.nozero), center = FALSE, scale. = FALSE)
+perc = 100*(pc.obj$sdev)^2 / sum(pc.obj$sdev^2)
+```
+
+```{r}
+
+```
