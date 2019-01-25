@@ -1,0 +1,12 @@
+* RNA ResNet
+** ToDos [0/2]
+*** TODO Code: [0/4]
+**** TODO Reorganize python code according to [[https://drivendata.github.io/cookiecutter-data-science/][cookie cutter data science]]
+**** TODO Reorganize R code
+**** TODO Rerun results to get plots
+**** TODO Do additional plots for data analysis
+*** TODO Writing [0/5]
+**** TODO Write MMD section
+**** TODO Write data section
+**** TODO Write results section
+**** TODO Write summary section
