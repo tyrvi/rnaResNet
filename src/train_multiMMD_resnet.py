@@ -29,13 +29,13 @@ def main():
 
     rnaNet.init_res_net()
 
-    callbacks=[rnaNet.lrate, cb.EarlyStopping(monitor='val_loss', patience=100, mode='auto')]
+    callbacks = [rnaNet.lrate, cb.EarlyStopping(monitor='val_loss', patience=100, mode='auto')]
     rnaNet.train(epochs=1000, callbacks=callbacks, batch_size=50)
     print("finished training")
     rnaNet.predict()
     rnaNet.pca()
     print("finished pca")
-    
+
     # plt.style.use('ggplot')
 
     # df = pd.concat([rnaNet.source_pca_df, rnaNet.target_pca_df])

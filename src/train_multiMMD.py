@@ -46,7 +46,7 @@ def create_model(layer_sizes=[20, 20], l2_penalty=1e-2, input_dim=1,
     assert (loss is not None), "must provide a loss"
 
     # input
-    calibInput = Input(shape=(inputDim, ))
+    calibInput = Input(shape=(input_dim, ))
 
     # block 1
     block1_bn1 = BatchNormalization()(calibInput)

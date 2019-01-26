@@ -30,7 +30,7 @@ def train_net(epochs=1000):
 
     rnaNet.init_res_net()
 
-    callbacks=[rnaNet.lrate, cb.EarlyStopping(monitor='val_loss', patience=100, mode='auto')]
+    callbacks = [rnaNet.lrate, cb.EarlyStopping(monitor='val_loss', patience=100, mode='auto')]
 
     rnaNet.train(epochs=epochs, callbacks=callbacks, batch_size=50)
     print("finished training")
@@ -102,4 +102,3 @@ if __name__ == "__main__":
     }
 
     main(params)
-        
