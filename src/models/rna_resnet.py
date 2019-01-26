@@ -7,14 +7,14 @@ from keras import callbacks as cb
 import numpy as np
 import matplotlib
 from keras.layers.normalization import BatchNormalization
-import CostFunctions as cf
+from .. import CostFunctions as cf
 # import MultiMMD as m
-import Monitoring as mn
+from .. import Monitoring as mn
 from keras.regularizers import l2
 from sklearn import decomposition
 from keras.callbacks import LearningRateScheduler
 import math
-import ScatterHist as sh
+from ..visual import scatterHist as sh
 from keras import initializers
 import tensorflow as tf
 import keras.backend as K

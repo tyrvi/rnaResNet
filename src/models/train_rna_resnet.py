@@ -1,14 +1,14 @@
-from rna_resnet import ResNet
-from keras import callbacks as cb
-from Calibration_Util import FileIO as io
 import os
 import numpy as np
-import CostFunctions as cf
-from keras import backend as K
 import pandas as pd
+from keras import callbacks as cb
+from keras import backend as K
 from matplotlib import pyplot as plt
 import seaborn as sns
-from plots import heatmap
+from .rna_resnet import ResNet
+from ..util import FileIO as io
+from .. import CostFunctions as cf
+from ..visual import heatmap
 
 
 def main():
