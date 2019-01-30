@@ -1,10 +1,24 @@
 * RNA ResNet
 ** ToDos [0/2]
-*** TODO Code: [0/4]
-**** TODO Reorganize python code according to [[https://drivendata.github.io/cookiecutter-data-science/][cookie cutter data science]]
-**** TODO Reorganize R code
-**** TODO Rerun results to get plots
-**** TODO Do additional plots for data analysis
+*** TODO Code: [1/5]
+**** DONE Reorganize python code according to [[https://drivendata.github.io/cookiecutter-data-science/][cookie cutter data science]]
+     CLOSED: [2019-01-29 Tue 16:40]
+**** TODO Reorganize R pre-processing code [0/8]
+     1. [ ] Read and load files from list.
+     2. [ ] Hashmap for tissue names
+     3. [ ] Merge list into one data frame. Remove unnecessary items
+        and rename based on tissue and data source.
+     4. [ ] Do PCA on data and split back into GTEX and TCGA.
+     5. [ ] Do combat on data for comparison.
+     6. [ ] Metadata function to get number of tissues of each type.
+     7. [ ] Heatmap plot
+     8. [ ] PCA plot
+**** TODO Reorganize python code for analysis [0/3]
+     1. [ ] Move notebook pre-processing code into src
+     2. [ ] Create pipeline from pre-procesed R data to calibrated
+        data.
+**** TODO Rerun results to get reports/plots
+**** TODO Do any additional recommended plots on results.
 *** TODO Writing [0/5]
 **** TODO Write MMD section
 **** TODO Write data section
