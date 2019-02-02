@@ -6,7 +6,7 @@ require(sva)
 require(RANN)
 require(reshape)
 require(preprocessCore)
-require(tsne)
+## require(tsne)
 
 
 rnaObj <- setClass("rnaObj", slots =
