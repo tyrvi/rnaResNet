@@ -6,8 +6,6 @@ require(sva)
 require(RANN)
 require(reshape)
 require(preprocessCore)
-## require(tsne)
-
 
 rnaObj <- setClass("rnaObj", slots =
                      c(data = "data.frame", tissue = "vector", study = "vector", counts = "data.frame", meta = "data.frame",
@@ -167,20 +165,31 @@ arrange.vars = function(data, vars){
 
 # Loads and merges RNA data from a list of file names and paths
 FileMultiMerge = function(file.names, path) {
-  tissueTypes = c("bladder", "breast", "prostate", "thyroid")
-  path.names = lapply(file.names, function(file.name) {
-    paste(path, file.name, sep = "/")
-  })
+    ## path.names = lapply(file.names, function(file.name) {
+    ##     paste(path, file.name, sep = "/")
+    ## })
   
-  data.list = lapply(path.names, function(file.name) {
-    read.table(file = file.name, header = TRUE)
-  })
+    data.list = lapply(file.names, function(file.name) {
+        file.path = paste(path, file.name, sep = "/")
+
+        s = strsplit(file.name, "-")[[1]]
+        src = toupper(strsplit(s[4], "\\.")[[1]][1])
+        tissue = tissue.map[[s[1]]]
+        # The columns will be named by the source of the data
+        # e.g. TCGA or GTEX followed by the tissue type.
+        src.tissue = paste(src, tissue, sep = ".")
+        d = read.table(file = file.path, header = TRUE, nrows = 1000)
+        len = length(d)
+        colnames(d)[3:len] = make.names(rep(c(src.tissue), len-2), unique = TRUE)
+
+        return(d)
+    })
   
-  data = Reduce(function(x, y) {
-    merge(x, y, by=c('Hugo_Symbol', 'Entrez_Gene_Id'))
-  }, data.list)
+    data = Reduce(function(x, y) {
+        merge(x, y, by=c('Hugo_Symbol', 'Entrez_Gene_Id'))
+    }, data.list)
   
-  return(data)
+    return(data)
 }
 
 

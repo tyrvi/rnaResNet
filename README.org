@@ -3,10 +3,10 @@
 *** TODO Code: [1/5]
 **** DONE Reorganize python code according to [[https://drivendata.github.io/cookiecutter-data-science/][cookie cutter data science]]
      CLOSED: [2019-01-29 Tue 16:40]
-**** TODO Reorganize R pre-processing code [0/8]
-     1. [ ] Read and load files from list.
-     2. [ ] Hashmap for tissue names
-     3. [ ] Merge list into one data frame. Remove unnecessary items
+**** TODO Reorganize R pre-processing code [3/8]
+     1. [X] Read and load files from list.
+     2. [X] Hashmap for tissue names
+     3. [X] Merge list into one data frame. Remove unnecessary items
         and rename based on tissue and data source.
      4. [ ] Do PCA on data and split back into GTEX and TCGA.
      5. [ ] Do combat on data for comparison.
@@ -24,3 +24,32 @@
 **** TODO Write data section
 **** TODO Write results section
 **** TODO Write summary section
+
+
+** Tissue Counts
+
+|----------+------+------|
+|          | TCGA | GTEX |
+|----------+------+------|
+| breast   |  110 |  212 |
+|----------+------+------|
+| prostate |   50 |  106 |
+|----------+------+------|
+| thyroid  |   53 |  318 |
+|----------+------+------|
+| lung     |  110 |  313 |
+|----------+------+------|
+| bladder  |   17 |   11 |
+|----------+------+------|
+| kidney   |  126 |   32 |
+|----------+------+------|
+| uterus   |   23 |   82 |
+|----------+------+------|
+| stomach  |   33 |  192 |
+|----------+------+------|
+| liver    |   48 |  115 |
+|----------+------+------|
+| colon    |   41 |  339 |
+|----------+------+------|
+| cervix   |    2 |   11 |
+|----------+------+------|
