@@ -3,16 +3,18 @@
 *** TODO Code: [1/5]
 **** DONE Reorganize python code according to [[https://drivendata.github.io/cookiecutter-data-science/][cookie cutter data science]]
      CLOSED: [2019-01-29 Tue 16:40]
-**** TODO Reorganize R pre-processing code [3/8]
+**** TODO Reorganize R pre-processing code [5/9]
      1. [X] Read and load files from list.
      2. [X] Hashmap for tissue names
      3. [X] Merge list into one data frame. Remove unnecessary items
         and rename based on tissue and data source.
-     4. [ ] Do PCA on data and split back into GTEX and TCGA.
+     4. [X] Do PCA on data and split back into GTEX and TCGA.
      5. [ ] Do combat on data for comparison.
-     6. [ ] Metadata function to get number of tissues of each type.
+     6. [X] Metadata function to get number of tissues of each type.
      7. [ ] Heatmap plot
      8. [ ] PCA plot
+     9. [ ] Pre-process code for normalized and quantile normalized
+        data.
 **** TODO Reorganize python code for analysis [0/3]
      1. [ ] Move notebook pre-processing code into src
      2. [ ] Create pipeline from pre-procesed R data to calibrated
