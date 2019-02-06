@@ -102,7 +102,7 @@ scatterPlot(data.qn, title = "Unnormalized log transformed and quantile normaliz
 Do combat things
 ```{r}
 annotation = data.log@meta
-rownames(annoation) = colnames(data.log@data)
+rownames(annotation) = colnames(data.log@data)
 
 batch = data.log@meta$study
 design = model.matrix(~1, data = data.log@meta)

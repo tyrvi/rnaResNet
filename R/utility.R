@@ -59,6 +59,26 @@ DoPCA = function(data, pcs.store = 100) {
     return(list(pca.scores, pca.load, percentage))
 }
 
+DoQN = function(data) {
+    data.rownames = rownames(data)
+    data.colnames = colnames(data)
+    data = normalize.quantiles(as.matrix(data))
+    data = data.frame(data, row.names = data.rownames)
+    colnames(data) = data.colnames
+
+    return(data)
+}
+
+DoCombat = function(data) {
+    meta = GetMetaDataFrame(data)
+
+    batch = meta$study
+    design = model.matrix(~1, data = meta)
+    combat = ComBat(dat = data, batch = batch, mod = design, par.prior = TRUE)
+
+    return(combat)
+}
+
 # Takes in pca data and adds columns specifying the source and tissue
 # of the row.
 AddStudyTissue = function(data) {
@@ -76,8 +96,53 @@ AddStudyTissue = function(data) {
     return(data)
 }
 
-GetMetaData = function(data) {
-    return(table(data$study, data$tissue))
+GetMetaDataTable = function(data) {
+    if ("study" %in% colnames(data) && "tissue" %in% colnames(data)) {
+        return(table(data$study, data$tissue))
+    }
+
+    if (grepl("GTEX", colnames(data)[1]) || grepl("TCGA", colnames(data)[1])) {
+        study = factor(unlist(lapply(colnames(data), function(x) {
+            unlist(strsplit(x, "\\.")[1][1])[1]
+        })))
+        tissue = factor(unlist(lapply(colnames(data), function(x) {
+            unlist(strsplit(x, "\\.")[1][1])[2]
+        })))
+    } else {
+        study = factor(unlist(lapply(rownames(data), function(x) {
+            unlist(strsplit(x, "\\.")[1][1])[1]
+        })))
+        tissue = factor(unlist(lapply(rownames(data), function(x) {
+            unlist(strsplit(x, "\\.")[1][1])[2]
+        })))
+    }
+
+    return(table(study, tissue))
+}
+
+GetMetaDataFrame = function(data) {
+    if ("study" %in% colnames(data) && "tissue" %in% colnames(data)) {
+        ## return(table(data$study, data$tissue))
+        return(data.frame(study = data$study, tissue = data$tissue))
+    }
+
+    if (grepl("GTEX", colnames(data)[1]) || grepl("TCGA", colnames(data)[1])) {
+        study = factor(unlist(lapply(colnames(data), function(x) {
+            unlist(strsplit(x, "\\.")[1][1])[1]
+        })))
+        tissue = factor(unlist(lapply(colnames(data), function(x) {
+            unlist(strsplit(x, "\\.")[1][1])[2]
+        })))
+    } else {
+        study = factor(unlist(lapply(rownames(data), function(x) {
+            unlist(strsplit(x, "\\.")[1][1])[1]
+        })))
+        tissue = factor(unlist(lapply(rownames(data), function(x) {
+            unlist(strsplit(x, "\\.")[1][1])[2]
+        })))
+    }
+
+    return(data.frame(study = study, tissue = tissue))
 }
 
 # Loads and merges RNA data from a list of file names and paths
