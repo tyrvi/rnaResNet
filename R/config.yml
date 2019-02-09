@@ -1,0 +1,16 @@
+type: "log"
+do.combat: FALSE
+input:
+    path: "~/ws/research/rnaResNet/data/raw/unnormalized"
+    files:
+        - "breast-rsem-fpkm-gtex.txt"
+        - "prostate-rsem-fpkm-gtex.txt"
+        - "thyroid-rsem-fpkm-gtex.txt"
+        - "brca-rsem-fpkm-tcga.txt"
+        - "prad-rsem-fpkm-tcga.txt"
+        - "thca-rsem-fpkm-tcga.txt"
+write: FALSE
+output:
+    path: "~/ws/research/rnaResNet/data/interim"
+    GTEX: "<NAME OF GTEX OUTPUT FILE HERE>"
+    TCGA: "<NAME OF TCGA OUTPUT FILE HERE>"

@@ -1,11 +1,7 @@
-require(Matrix)
-require(igraph)
-require(gmodels)
-require(ggplot2)
-require(sva)
-require(RANN)
-require(reshape)
-require(preprocessCore)
+require(gmodels, quietly = TRUE)
+require(sva, quietly = TRUE)
+require(preprocessCore, quietly = TRUE)
+require(hash, quietly = TRUE)
 
 # global map of tissues from file names to "real" tissue name.
 keys   = c("bladder", "breast", "cervix", "colon", "liver",
@@ -74,6 +70,7 @@ DoCombat = function(data) {
 
     batch = meta$study
     design = model.matrix(~1, data = meta)
+    print(data)
     combat = ComBat(dat = data, batch = batch, mod = design, par.prior = TRUE)
 
     return(combat)
@@ -160,6 +157,7 @@ FileMultiMerge = function(file.names, path) {
         # The columns will be named by the source of the data
         # e.g. TCGA or GTEX followed by the tissue type.
         study.tissue = paste(study, tissue, sep = ".")
+        ## TODO: change nrows so we read all the rows.
         d = read.table(file = file.path, header = TRUE, nrows = 1000)
         len = length(d)
         colnames(d)[3:len] = make.names(rep(c(study.tissue), len-2), unique = TRUE)
