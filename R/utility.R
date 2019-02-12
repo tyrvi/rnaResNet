@@ -70,8 +70,7 @@ DoCombat = function(data) {
 
     batch = meta$study
     design = model.matrix(~1, data = meta)
-    print(data)
-    combat = ComBat(dat = data, batch = batch, mod = design, par.prior = TRUE)
+    combat = ComBat(dat = as.matrix(data), batch = batch, mod = design, par.prior = TRUE)
 
     return(combat)
 }
@@ -119,7 +118,6 @@ GetMetaDataTable = function(data) {
 
 GetMetaDataFrame = function(data) {
     if ("study" %in% colnames(data) && "tissue" %in% colnames(data)) {
-        ## return(table(data$study, data$tissue))
         return(data.frame(study = data$study, tissue = data$tissue))
     }
 

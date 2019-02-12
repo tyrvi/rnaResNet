@@ -1,4 +1,5 @@
 type: "log"
+write: FALSE
 do.combat: FALSE
 input:
     path: "~/ws/research/rnaResNet/data/raw/unnormalized"
@@ -9,7 +10,6 @@ input:
         - "brca-rsem-fpkm-tcga.txt"
         - "prad-rsem-fpkm-tcga.txt"
         - "thca-rsem-fpkm-tcga.txt"
-write: FALSE
 output:
     path: "~/ws/research/rnaResNet/data/interim"
     GTEX: "<NAME OF GTEX OUTPUT FILE HERE>"
